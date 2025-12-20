@@ -84,7 +84,8 @@ app.post(
           loginPage({
             email: formData?.email,
             error: `Please enter a valid email and password`,
-          })
+          }),
+          500
         );
       }
     }
@@ -120,7 +121,8 @@ app.post(
         loginPage({
           email, // Keep the email in the box
           error: "Invalid email or password",
-        })
+        }),
+        500
       );
     } catch (err) {
       console.error(err);

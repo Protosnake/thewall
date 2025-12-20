@@ -2,9 +2,8 @@
   "name": "my-app",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "dev": "tsx watch backend/server.ts",
+    "test": "tsx --test testing/integration/specs/**/*.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

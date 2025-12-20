@@ -4,9 +4,18 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug via NPM",
+      "name": "Start server",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test"],
       "skipFiles": ["<node_internals>/**"],
       "console": "integratedTerminal"
     }

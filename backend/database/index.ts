@@ -28,7 +28,7 @@ export default class DatabaseClient {
   transaction<T>(fn: () => T): T {
     return this.db.transaction(fn)();
   }
-  
+
   initialise(schemas: string[]) {
     // Call your own transaction method to keep logic consistent
     this.transaction(() => {
