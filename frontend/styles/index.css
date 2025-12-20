@@ -34,11 +34,11 @@ main {
 form {
   display: flex;
   flex-direction: column;
-  /* gap: 1rem; */
+  gap: 1rem;
   background: var(--gray);
   padding: 2rem;
   max-width: 400px;
-  margin: 0 auto;
+  margin: 1rem;
 }
 
 input {
@@ -56,4 +56,40 @@ button {
 
 button:hover {
   filter: brightness(0.9);
+}
+
+a,
+a:visited {
+  color: var(--primary);
+  text-decoration: none; /* Optional: removes underline */
+}
+a:hover {
+  text-decoration: underline;
+  filter: brightness(1.2);
+}
+
+nav {
+  display: flex; /* Turn the nav into a flex container */
+  flex-direction: row;
+  align-items: center; /* Center links vertically */
+  gap: 1.5rem; /* Space between links */
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+/* This pushes the specific item to the far right */
+.right {
+  margin-left: auto;
+}
+
+.error-msg {
+  background-color: #f0c4c4; /* A soft, modern coral red */
+  color: #ffffff; /* Pure white text */
+  padding: 0.75rem 1rem; /* Space inside the box */
+  margin-bottom: 1.5rem; /* Space between error and form */
+  font-size: 0.9rem; /* Slightly smaller text for secondary info */
+  font-weight: 500; /* Medium thickness for clarity */
+  text-align: center; /* Centers the text inside the box */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Very subtle depth */
+  border: 1px solid #ef4444; /* Slightly darker red border to define edges */
 }

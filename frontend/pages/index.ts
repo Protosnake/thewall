@@ -17,13 +17,13 @@ export default (props: {
         <title>${title}</title>
       </head>
       <body>
-        <nav style="padding: 1rem; border-bottom: 1px solid #eee;">
+        <nav>
           <a href="/">Home</a>
           <a href="/feed">Feed</a>
-          <a href="/logout">Logout</a>
+          <a class="right" href="/logout">Logout</a>
         </nav>
 
-        <main>${content}</main>
+        <main class="container">${content}</main>
 
         <footer style="text-align: center; padding: 2rem; font-size: 0.8rem;">
           © ${new Date().getFullYear()} TheWall(c)
