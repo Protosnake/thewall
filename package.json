@@ -8,9 +8,13 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
-    "hono": "^4.11.1"
+    "@hono/zod-validator": "^0.7.6",
+    "better-sqlite3": "^12.5.0",
+    "hono": "^4.11.1",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.11.17",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"

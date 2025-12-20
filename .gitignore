@@ -26,3 +26,8 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# sqlite
+*.db
+*.db-journal
+*.db-wal
