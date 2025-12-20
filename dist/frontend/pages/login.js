@@ -1,12 +1,10 @@
 import { html } from "hono/html";
 import base from "./index.js";
-
-export default (props: { error?: string; email?: string } = {}) => {
-  const { error, email = "" } = props;
-
-  return base({
-    title: "Login",
-    content: html`
+export default (props = {}) => {
+    const { error, email = "" } = props;
+    return base({
+        title: "Login",
+        content: html `
       <form action="/login" method="POST" style="width: 20rem">
         <label for="email">Email</label>
         <input type="email" name="email" id="email" value="${props.email}" />
@@ -15,7 +13,7 @@ export default (props: { error?: string; email?: string } = {}) => {
         <button type="submit">Log in</button>
         <a href="/signup">Don't have an account?</a>
       </form>
-      ${!!error ? html`<div class="error-msg">${error}</div>` : ""}
+      ${!!error ? html `<div class="error-msg">${error}</div>` : ""}
     `,
-  });
+    });
 };

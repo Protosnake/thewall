@@ -1,4 +1,4 @@
-import db from "../database/index.js";
+import DatabaseClient from "../database/index.js";
 
 export interface IEntity<T extends { id: string; createdAt: string }> {
   create(input: Omit<T, "id" | "createdAt">): Promise<T>;
@@ -16,7 +16,7 @@ export default abstract class Entity<
   T extends { id: string; createdAt: string }
 > implements IEntity<T>
 {
-  constructor(readonly db: db) {}
+  constructor(readonly db: DatabaseClient) {}
 
   abstract create(input: Omit<T, "id" | "createdAt">): Promise<T>;
   abstract read(payload: {

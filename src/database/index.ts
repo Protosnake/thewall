@@ -1,8 +1,6 @@
 import Database from "better-sqlite3";
 
-export interface IDatabase {}
-
-export default class {
+export default class DatabaseClient {
   private db;
   constructor(readonly name: string) {
     this.db = new Database(name);
@@ -20,5 +18,21 @@ export default class {
   // Insert, Update, Delete
   run(sql: string, params: any[] = []): void {
     this.db.prepare(sql).run(...params);
+  }
+
+  exec(sql: string): void {
+    this.db.exec(sql);
+  }
+
+  // Used for safe, multi-step operations
+  transaction<T>(fn: () => T): T {
+    return this.db.transaction(fn)();
+  }
+  
+  initialise(schemas: string[]) {
+    // Call your own transaction method to keep logic consistent
+    this.transaction(() => {
+      schemas.forEach((schema) => this.exec(schema));
+    });
   }
 }

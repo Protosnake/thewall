@@ -1,5 +1,6 @@
 import { z } from "zod";
 import Entity from "./Entity.js";
+import { hashPassword } from "../database/encrypt.js";
 
 const UserSchema = z.object({
   id: z.string(),
@@ -11,19 +12,36 @@ const UserSchema = z.object({
 });
 export type UserT = z.infer<typeof UserSchema>;
 
+export const USER_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedBy TEXT NOT NULL
+  );
+`;
+
 export default class User extends Entity<UserT> {
-  async create(input: Omit<UserT, "id">) {
+  async create(input: Pick<UserT, "email" | "password">) {
+    const userId = crypto.randomUUID(); // No library needed in modern Node.js
+    const now = new Date().toISOString();
+    const encryptedPassword = hashPassword(input.password);
+
     const sql = `
-    INSERT INTO users (email, password, createdAt, updatedAt) 
-    VALUES (?, ?, ?, ?) 
-    RETURNING *
-  `;
+      INSERT INTO users (id, email, password, createdAt, updatedAt, updatedBy) 
+      VALUES (?, ?, ?, ?, ?, ?) 
+      RETURNING *
+    `;
 
     const result = this.db.get<UserT>(sql, [
+      userId,
       input.email,
-      input.password,
-      new Date().toISOString(),
-      new Date().toISOString(),
+      encryptedPassword,
+      now,
+      now,
+      userId,
     ]);
 
     return UserSchema.parse(result);
@@ -34,7 +52,7 @@ export default class User extends Entity<UserT> {
     limit: number;
     offset: number;
   }): Promise<UserT[]> {
-    if (payload.id) {
+    if (payload?.id) {
       const result = this.db.get<UserT>("SELECT * FROM users WHERE id = ?", [
         payload.id,
       ]);
@@ -53,13 +71,11 @@ export default class User extends Entity<UserT> {
       sql += ` WHERE ` + conditions.join(" AND ");
     }
 
-    // 3. Add Pagination
     sql += ` LIMIT ? OFFSET ?`;
     params.push(payload.limit, payload.offset);
 
     const results = this.db.query<UserT>(sql, params);
 
-    // 4. Validate and Return
     return results.map((row) => UserSchema.parse(row));
   }
 
