@@ -1,0 +1,59 @@
+/* Modern Minimalist Reset */
+:root {
+  --primary: #2563eb;
+  --bg: #ffffff;
+  --text: #1f2937;
+  --gray: #f3f4f6;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--bg);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Make forms look decent by default */
+form {
+  display: flex;
+  flex-direction: column;
+  /* gap: 1rem; */
+  background: var(--gray);
+  padding: 2rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(0.9);
+}
