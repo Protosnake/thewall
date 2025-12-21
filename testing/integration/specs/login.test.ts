@@ -1,8 +1,7 @@
 import { test, suite } from "node:test";
-import ApiClient from "../../api/ApiClient.js";
-import Login from "../../api/routes/Login.js";
-import assert from "assert";
-import { PATHS } from "../../api/routes.js";
+import ApiClient from "testing/api/ApiClient.js";
+import Login from "testing/api/routes/Login.js";
+import { PATHS } from "testing/api/routes.js";
 
 suite("Login", () => {
   test("Successful login should redirect to `/`", async () => {
