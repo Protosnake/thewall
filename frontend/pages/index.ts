@@ -16,7 +16,7 @@ export default (props: {
         <title>${title}</title>
       </head>
       <body>
-        <nav>
+        <nav>28
           <a href="/">Home</a>
           <a href="/feed">Feed</a>
           <a class="right" href="/logout">Logout</a>
@@ -24,10 +24,10 @@ export default (props: {
         <div class="container">
           <aside class="sidebar">
             <nav>
-              <a class="left" href="/dashboard">Dashboard</a>
-              <a class="left" href="/profile">Profile</a>
-              <a class="left" href="/settings">Settings</a>
-              <a class="left" href="/messages">Messages</a>
+              <a href="/dashboard">Dashboard</a>
+              <a href="/profile">Profile</a>
+              <a href="/settings">Settings</a>
+              <a href="/messages">Messages</a>
             </nav>
           </aside>
           <main>${content}</main>

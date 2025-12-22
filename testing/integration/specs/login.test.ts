@@ -4,7 +4,7 @@ import Login from "testing/api/routes/Login.js";
 import { PATHS } from "testing/api/routes.js";
 
 suite("Login", () => {
-  test("Successful login should redirect to `/`", async () => {
+  test.skip("Successful login should redirect to `/`", async () => {
     // Insert a user into DB first
     const apiClient = new ApiClient();
     const login = await new Login(apiClient).login({

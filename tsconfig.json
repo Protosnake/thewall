@@ -11,6 +11,9 @@
     "baseUrl": ".",
     "paths": {
       "backend": ["backend/*"],
+      "database": ["backend/database/*"],
+      "handlers": ["backend/handlers/*"],
+      "schemas": ["backend/schemas/*"],
       "frontend": ["frontend/*"],
       "testing": ["testing/*"]
     }
