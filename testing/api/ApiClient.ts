@@ -1,20 +1,25 @@
+import type DatabaseClient from "backend/database/index.js";
+import { createServer } from "backend/server.js";
+
 export default class ApiClient {
-  private readonly baseUrl: string;
   private headers = {
     "Content-Type": "application/json",
   };
-  constructor() {
-    this.baseUrl = process.env["BASE_URL"] || "http://localhost:3000";
+
+  server: ReturnType<typeof createServer>;
+  constructor(private db: DatabaseClient) {
+    this.server = createServer(db);
   }
 
   private async request(path: string, options: RequestInit) {
-    const url = this.baseUrl + path;
-    const response = await fetch(url, {
+    // localhost is just a placeholder, server will never start anyway
+    const request = new Request(`http://localhost${path}`, {
       ...options,
       headers: { ...this.headers, ...options.headers },
     });
 
-    return response;
+    // This calls your app logic directly in-memory
+    return this.server.fetch(request, { db: this.db });
   }
 
   async get(path: string) {

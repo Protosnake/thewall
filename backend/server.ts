@@ -1,81 +1,81 @@
-import { serve } from "@hono/node-server";
-import { fileURLToPath } from "node:url";
-import path from "path";
 import { Hono, type Context, type Next } from "hono";
-import { getCookie, deleteCookie } from "hono/cookie";
-import { serveStatic } from "@hono/node-server/serve-static";
+import { getCookie } from "hono/cookie";
+import { serveStatic } from "hono/bun";
 import DatabaseClient from "./database/index.js";
 import feedPage from "../frontend/pages/feed.js";
 import { USER_TABLE_SQL } from "./entities/User.js";
 import authHandlers from "./handlers/auth.handler.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/**
+ * Server Factory
+ * Allows injecting a custom database (like :memory: for tests)
+ */
+export const createServer = (testDb?: DatabaseClient) => {
+  const app = new Hono<{ Variables: { db: DatabaseClient } }>();
 
-const app = new Hono<{ Variables: { db: DatabaseClient } }>();
-const db = new DatabaseClient("thewall.db");
+  // 1. Determine which DB to use
+  // If testDb is provided, use it. Otherwise, use the persistent file.
+  const activeDb = testDb || new DatabaseClient("thewall.db");
 
-// Just a simple list of what needs to exist
-db.initialise([USER_TABLE_SQL]);
+  // 2. Initialize the Database
+  // This ensures that if it's a fresh in-memory DB, the tables are created immediately
+  activeDb.initialise([USER_TABLE_SQL]);
 
-// --- Middleware ---
-const authMiddleware = async (c: Context, next: Next) => {
-  const session = getCookie(c, "session");
+  // --- Middleware ---
 
-  if (!session) {
-    return c.redirect("/login");
-  }
+  // Inject the DB into the context for all routes
+  app.use("*", async (c, next) => {
+    c.set("db", activeDb);
+    await next();
+  });
 
-  await next();
+  const authMiddleware = async (c: Context, next: Next) => {
+    const session = getCookie(c, "session");
+    if (!session) {
+      return c.redirect("/login");
+    }
+    await next();
+  };
+
+  // Static files
+  app.use(
+    "/styles/*",
+    serveStatic({
+      root: "./frontend",
+    })
+  );
+
+  // --- Routes ---
+
+  // Mount Handlers (Auth handles /login, /signup, /logout)
+  app.route("/", authHandlers);
+
+  app.get("/", (c) => {
+    const session = getCookie(c, "session");
+    if (!session) return c.redirect("/login");
+    return c.redirect("/feed");
+  });
+
+  app.get("/feed", authMiddleware, (c) => {
+    return c.html(feedPage());
+  });
+
+  return app;
 };
 
-// If your css is in ./frontend/static/style.css
-app.use(
-  "/styles/*",
-  serveStatic({
-    // This creates an absolute path to the frontend folder
-    root: path.resolve(__dirname, "../frontend"),
-  })
-);
+// --- Execution Logic ---
 
-app.use("*", async (c, next) => {
-  // console.log(`[${c.req.method}] ${c.req.url}`);
-  c.set("db", db);
-  await next();
-});
-app.route("/", authHandlers);
+// Create the production instance
+const app = createServer();
 
-app.get("/", (c) => {
-  const session = getCookie(c, "session");
-  if (!session) {
-    return c.redirect("/login");
-  }
+// Export for both testing (the instance) and for the ApiClient
+export default app;
 
-  return c.html(feedPage());
-});
-
-app.get("/feed", authMiddleware, (c) => {
-  return c.html(feedPage());
-});
-
-// --- Server Setup ---
-const server = serve(
-  {
+// Only start the actual Bun server if this file is run directly
+if (import.meta.main) {
+  console.log("Starting server on http://localhost:3000");
+  Bun.serve({
     fetch: app.fetch,
     port: 3000,
-  },
-  (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
-  }
-);
-
-// Graceful Shutdown
-const shutdown = () => {
-  server.close(() => {
-    console.log("Server closed");
-    process.exit(0);
   });
-};
-
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+}

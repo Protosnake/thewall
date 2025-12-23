@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 
 export default class DatabaseClient {
   private db;
@@ -34,5 +34,9 @@ export default class DatabaseClient {
     this.transaction(() => {
       schemas.forEach((schema) => this.exec(schema));
     });
+  }
+
+  close() {
+    this.db.close();
   }
 }

@@ -67,7 +67,8 @@ auth.post(
         signUpPage({
           email: formData?.email,
           error: result.error.issues[0].message,
-        })
+        }),
+        400
       );
     }
   }),
@@ -75,21 +76,36 @@ auth.post(
     const data = c.req.valid("form");
     const db = c.get("db");
 
-    await new User(db)
+    const userRepo = new User(db);
+    const [existingUser] = await userRepo.read({
+      filter: { email: data.email },
+      limit: 1,
+      offset: 0,
+    });
+    if (existingUser)
+      return c.html(
+        signUpPage({ error: "User with this email already exists" }),
+        400
+      );
+
+    return new User(db)
       .create({
         email: data.email,
         password: data.password,
       })
-      .catch((error) => {
-        return c.html(signUpPage({ error }));
-      });
-
-    setCookie(c, "session", data?.email, {
-      path: "/",
-      httpOnly: true,
-      maxAge: 60 * 60, // 1 hour
-    });
-    return c.redirect("/feed");
+      .then(
+        (user) => {
+          setCookie(c, "session", user.id, {
+            path: "/",
+            httpOnly: true,
+            maxAge: 60 * 60, // 1 hour
+          });
+          return c.redirect("/feed");
+        },
+        (error) => {
+          return c.html(signUpPage({ error }), 400);
+        }
+      );
   }
 );
 // GET /logout
