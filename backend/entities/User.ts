@@ -3,7 +3,7 @@ import { users, type UserT, type UserInsertT } from "database/schema.js";
 import { hashPassword } from "database/encrypt.js";
 import Entity from "./Entity.js";
 
-export default class extends Entity {
+export default class extends Entity<UserT> {
   /**
    * Create a new user with hashed password.
    * Business logic like hashing stays here or in the Service layer.
@@ -25,60 +25,48 @@ export default class extends Entity {
     return result;
   }
 
-  /**
-   * Flexible read method.
-   * Drizzle handles the SQL generation safely.
-   */
-  async read(payload: {
-    id?: string;
-    filter?: Partial<UserT>;
-    limit: number;
-    offset: number;
-  }): Promise<UserT[]> {
-    // 1. Fast path for ID
-    if (payload.id) {
-      const result = await this.db
-        .select()
-        .from(users)
-        .where(eq(users.id, payload.id))
-        .get();
-      return result ? [result] : [];
-    }
+  async find(id: string): Promise<UserT> {
+    const res = this.db.select().from(users).where(eq(users.id, id)).get();
+    if (!res) throw new Error(`Couldn't find user by id: ${id}`);
+    return res;
+  }
+  async search(payload: {
+    filter: Partial<UserT>;
+    limit?: number;
+    offset?: number;
+  }) {
+    // Case 2: Fetch multiple sessions with filters/pagination
+    const { filter, limit = 50, offset = 0 } = payload;
 
-    // 2. Build dynamic query
-    const query = this.db.select().from(users);
-    const conditions = [];
+    // Dynamically build the WHERE clause based on the filter object
+    const conditions = Object.entries(filter).map(([key, value]) =>
+      eq(users[key as keyof UserT], value)
+    );
 
-    if (payload.filter) {
-      for (const [key, value] of Object.entries(payload.filter)) {
-        if (value !== undefined && key in users) {
-          conditions.push(eq((users as any)[key], value));
-        }
-      }
-    }
-
-    if (conditions.length > 0) {
-      query.where(and(...conditions));
-    }
-
-    return await query.limit(payload.limit).offset(payload.offset).all();
+    return this.db
+      .select()
+      .from(users)
+      .where(and(...conditions))
+      .limit(limit)
+      .offset(offset)
+      .all();
   }
 
   /**
    * Update user fields.
    * Drizzle handles partial updates automatically.
    */
-  async update(id: string, input: Partial<UserInsertT>): Promise<UserT> {
+  async update(input: Partial<UserInsertT> & { id: string }): Promise<UserT> {
     const [result] = await this.db
       .update(users)
       .set({
         ...input,
         updatedAt: new Date().toISOString(), // Manual update of timestamp if not using triggers
       })
-      .where(eq(users.id, id))
+      .where(eq(users.id, input.id))
       .returning();
 
-    if (!result) throw new Error(`User with ID ${id} not found.`);
+    if (!result) throw new Error(`User with ID ${input.id} not found.`);
     return result;
   }
 

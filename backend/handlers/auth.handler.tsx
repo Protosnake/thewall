@@ -37,7 +37,7 @@ auth.post(
 
     try {
       const user = await auth.login(form);
-      const session = await new Session(db).create(user.id);
+      const session = await new Session(db).create({ user });
       setCookie(c, "session", session.id, {
         path: "/",
         httpOnly: true,
@@ -78,7 +78,7 @@ auth.post(
 
     try {
       const user = await service.signup(form);
-      const session = await new Session(db).create(user.id);
+      const session = await new Session(db).create({ user });
       setCookie(c, "session", session.id, {
         path: "/",
         httpOnly: true,
@@ -100,7 +100,7 @@ auth.get(AuthSchema.logout.path, async (c) => {
   const token = getCookie(c, "session");
   if (token) {
     const db = c.get("db");
-    await new Session(db).revoke(token);
+    await new AuthService(db).revoke(token);
   }
   deleteCookie(c, "session");
   return c.redirect(AuthSchema.login.path);
