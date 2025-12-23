@@ -2,7 +2,7 @@ import { Hono, type Context, type Next } from "hono";
 import { getCookie } from "hono/cookie";
 import { serveStatic } from "hono/bun";
 import DatabaseClient from "./database/index.js";
-import feedPage from "../frontend/pages/feed.js";
+import feedPage from "../frontend/pages/Feed.page.js";
 import { USER_TABLE_SQL } from "./entities/User.js";
 import authHandlers from "./handlers/auth.handler.js";
 
@@ -69,13 +69,7 @@ export const createServer = (testDb?: DatabaseClient) => {
 const app = createServer();
 
 // Export for both testing (the instance) and for the ApiClient
-export default app;
-
-// Only start the actual Bun server if this file is run directly
-if (import.meta.main) {
-  console.log("Starting server on http://localhost:3000");
-  Bun.serve({
-    fetch: app.fetch,
-    port: 3000,
-  });
-}
+export default {
+  fetch: app.fetch,
+  port: 3000,
+};

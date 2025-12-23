@@ -7,6 +7,7 @@
     "skipLibCheck": true,
     "types": ["bun"],
     "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
@@ -20,5 +21,12 @@
     }
   },
   "exclude": ["node_modules"],
-  "include": ["**/*.ts"]
+  "include": [
+    "**/*.ts",
+    "frontend/pages/Layout.tsx",
+    "frontend/pages/SignUp.tsx",
+    "frontend/pages/Login.tsx",
+    "frontend/pages/Feed.page.tsx",
+    "backend/handlers/auth.handler.tsx"
+  ]
 }
