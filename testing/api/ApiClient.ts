@@ -1,4 +1,4 @@
-import type DatabaseClient from "backend/database/index.js";
+import type DatabaseClient from "backend/database/DatabaseClient.js";
 import { createServer } from "backend/server.js";
 
 export default class ApiClient {

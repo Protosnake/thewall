@@ -1,4 +1,4 @@
-import DatabaseClient from "backend/database/index.js";
+import DatabaseClient from "backend/database/DatabaseClient.js";
 import { test as _test, describe as _describe } from "bun:test";
 import ApiClient from "testing/api/ApiClient.js";
 

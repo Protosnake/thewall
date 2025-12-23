@@ -1,106 +1,96 @@
-import { z } from "zod";
+import { eq, and } from "drizzle-orm";
+import { users, type UserT, type UserInsertT } from "database/schema.js";
+import { hashPassword } from "database/encrypt.js";
 import Entity from "./Entity.js";
-import { hashPassword } from "../database/encrypt.js";
 
-const UserSchema = z.object({
-  id: z.string(),
-  email: z.email(),
-  password: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  updatedBy: z.string(),
-});
-export type UserT = z.infer<typeof UserSchema>;
-
-export const USER_TABLE_SQL = `
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedBy TEXT NOT NULL
-  );
-`;
-
-export default class User extends Entity<UserT> {
+export default class extends Entity {
+  /**
+   * Create a new user with hashed password.
+   * Business logic like hashing stays here or in the Service layer.
+   */
   async create(input: Pick<UserT, "email" | "password">): Promise<UserT> {
-    const userId = crypto.randomUUID(); // No library needed in modern Node.js
-    const now = new Date().toISOString();
+    const userId = crypto.randomUUID();
     const encryptedPassword = hashPassword(input.password);
 
-    const sql = `
-      INSERT INTO users (id, email, password, createdAt, updatedAt, updatedBy) 
-      VALUES (?, ?, ?, ?, ?, ?) 
-      RETURNING *
-    `;
+    const [result] = await this.db
+      .insert(users)
+      .values({
+        id: userId,
+        email: input.email,
+        password: encryptedPassword,
+        updatedBy: userId, // Initial creator is the user themselves
+      })
+      .returning();
 
-    const result = this.db.get<UserT>(sql, [
-      userId,
-      input.email,
-      encryptedPassword,
-      now,
-      now,
-      userId,
-    ]);
-
-    return UserSchema.parse(result);
+    return result;
   }
+
+  /**
+   * Flexible read method.
+   * Drizzle handles the SQL generation safely.
+   */
   async read(payload: {
-    id?: UserT["id"];
+    id?: string;
     filter?: Partial<UserT>;
     limit: number;
     offset: number;
   }): Promise<UserT[]> {
-    if (payload?.id) {
-      const result = this.db.get<UserT>("SELECT * FROM users WHERE id = ?", [
-        payload.id,
-      ]);
-      return result ? [UserSchema.parse(result)] : [];
+    // 1. Fast path for ID
+    if (payload.id) {
+      const result = await this.db
+        .select()
+        .from(users)
+        .where(eq(users.id, payload.id))
+        .get();
+      return result ? [result] : [];
     }
 
-    let sql = `SELECT * FROM users`;
-    const params: any[] = [];
-    const filterEntries = Object.entries(payload.filter || {});
+    // 2. Build dynamic query
+    const query = this.db.select().from(users);
+    const conditions = [];
 
-    if (filterEntries.length > 0) {
-      const conditions = filterEntries.map(([key, value]) => {
-        params.push(value);
-        return `${key} = ?`;
-      });
-      sql += ` WHERE ` + conditions.join(" AND ");
+    if (payload.filter) {
+      for (const [key, value] of Object.entries(payload.filter)) {
+        if (value !== undefined && key in users) {
+          conditions.push(eq((users as any)[key], value));
+        }
+      }
     }
 
-    sql += ` LIMIT ? OFFSET ?`;
-    params.push(payload.limit, payload.offset);
+    if (conditions.length > 0) {
+      query.where(and(...conditions));
+    }
 
-    const results = this.db.query<UserT>(sql, params);
-
-    return results.map((row) => UserSchema.parse(row));
+    return await query.limit(payload.limit).offset(payload.offset).all();
   }
 
-  async update(input: Partial<UserT> & { id: string }): Promise<UserT> {
-    const { id, ...fields } = input;
-    const keys = Object.keys(fields);
-    const values = Object.values(fields);
+  /**
+   * Update user fields.
+   * Drizzle handles partial updates automatically.
+   */
+  async update(id: string, input: Partial<UserInsertT>): Promise<UserT> {
+    const [result] = await this.db
+      .update(users)
+      .set({
+        ...input,
+        updatedAt: new Date().toISOString(), // Manual update of timestamp if not using triggers
+      })
+      .where(eq(users.id, id))
+      .returning();
 
-    // Dynamically build: SET email = ?, password = ?
-    const setClause = keys.map((key) => `${key} = ?`).join(", ");
-    const sql = `UPDATE users SET ${setClause}, updatedAt = ? WHERE id = ? RETURNING *`;
-
-    const result = this.db.get<UserT>(sql, [
-      ...values,
-      new Date().toISOString(),
-      id,
-    ]);
-
-    if (!result) throw new Error("User not found for update");
-    return UserSchema.parse(result);
+    if (!result) throw new Error(`User with ID ${id} not found.`);
+    return result;
   }
 
-  async delete(payload: Pick<UserT, "id">): Promise<boolean> {
-    // Note: your interface uses Pick<T, "id">, so we access payload.id
-    this.db.run("DELETE FROM users WHERE id = ?", [payload.id]);
-    return true;
+  /**
+   * Simple delete by ID
+   */
+  async delete(id: string): Promise<boolean> {
+    const result = await this.db
+      .delete(users)
+      .where(eq(users.id, id))
+      .returning({ id: users.id });
+
+    return result.length > 0;
   }
 }

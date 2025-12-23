@@ -1,9 +1,8 @@
 import { Hono, type Context, type Next } from "hono";
 import { getCookie } from "hono/cookie";
 import { serveStatic } from "hono/bun";
-import DatabaseClient from "./database/index.js";
+import DatabaseClient from "./database/DatabaseClient.js";
 import feedPage from "../frontend/pages/Feed.page.js";
-import { USER_TABLE_SQL } from "./entities/User.js";
 import authHandlers from "./handlers/auth.handler.js";
 
 /**
@@ -19,7 +18,7 @@ export const createServer = (testDb?: DatabaseClient) => {
 
   // 2. Initialize the Database
   // This ensures that if it's a fresh in-memory DB, the tables are created immediately
-  activeDb.initialise([USER_TABLE_SQL]);
+  activeDb.initialise();
 
   // --- Middleware ---
 

@@ -1,5 +1,5 @@
 import User, { type UserT } from "backend/entities/User.js";
-import type DatabaseClient from "backend/database/index.js";
+import type DatabaseClient from "backend/database/DatabaseClient.js";
 import { verifyPassword } from "backend/database/encrypt.js";
 import type { LoginBody, SignupBody } from "backend/schemas/auth.schema.js";
 

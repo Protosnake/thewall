@@ -7,7 +7,7 @@ import AuthService from "backend/services/auth.service.js";
 // Components
 import Login from "frontend/pages/Login.js";
 import SignUp from "frontend/pages/SignUp.js";
-import type DatabaseClient from "backend/database/index.js";
+import type DatabaseClient from "backend/database/DatabaseClient.js";
 import HTTP_CODES from "constants/HTTP_CODES.js";
 
 const auth = new Hono<{ Variables: { db: DatabaseClient } }>();
