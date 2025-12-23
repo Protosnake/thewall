@@ -9,6 +9,7 @@ import Login from "frontend/pages/Login.js";
 import SignUp from "frontend/pages/SignUp.js";
 import type DatabaseClient from "backend/database/DatabaseClient.js";
 import HTTP_CODES from "constants/HTTP_CODES.js";
+import Session from "backend/entities/Session.js";
 
 const auth = new Hono<{ Variables: { db: DatabaseClient } }>();
 
@@ -31,14 +32,17 @@ auth.post(
   }),
   async (c) => {
     const form = c.req.valid("form");
-    const service = new AuthService(c.get("db"));
+    const db = c.get("db");
+    const auth = new AuthService(c.get("db"));
 
     try {
-      const user = await service.login(form);
-      setCookie(c, "session", user.id, {
+      const user = await auth.login(form);
+      const session = await new Session(db).create(user.id);
+      setCookie(c, "session", session.id, {
         path: "/",
         httpOnly: true,
         maxAge: 3600,
+        expires: session.expiresAt,
       });
       return c.redirect("/feed");
     } catch (error: any) {
@@ -69,13 +73,16 @@ auth.post(
   }),
   async (c) => {
     const form = c.req.valid("form");
-    const service = new AuthService(c.get("db"));
+    const db = c.get("db");
+    const service = new AuthService(db);
 
     try {
       const user = await service.signup(form);
-      setCookie(c, "session", user.id, {
+      const session = await new Session(db).create(user.id);
+      setCookie(c, "session", session.id, {
         path: "/",
         httpOnly: true,
+        expires: session.expiresAt,
         maxAge: 3600,
       });
       return c.redirect("/feed");
@@ -89,7 +96,12 @@ auth.post(
 );
 
 // GET /logout
-auth.get(AuthSchema.logout.path, (c) => {
+auth.get(AuthSchema.logout.path, async (c) => {
+  const token = getCookie(c, "session");
+  if (token) {
+    const db = c.get("db");
+    await new Session(db).revoke(token);
+  }
   deleteCookie(c, "session");
   return c.redirect(AuthSchema.login.path);
 });

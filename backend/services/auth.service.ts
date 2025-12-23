@@ -1,7 +1,8 @@
-import User, { type UserT } from "backend/entities/User.js";
+import { type UserT } from "backend/database/schema.js";
 import type DatabaseClient from "backend/database/DatabaseClient.js";
 import { verifyPassword } from "backend/database/encrypt.js";
 import type { LoginBody, SignupBody } from "backend/schemas/auth.schema.js";
+import User from "backend/entities/User.js";
 
 export default class {
   constructor(private db: DatabaseClient) {}
