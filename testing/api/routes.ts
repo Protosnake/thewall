@@ -1,20 +1,12 @@
+import type { LoginBody, SignupBody } from "backend/schemas/auth.schema.js";
+import { AuthSchema } from "backend/schemas/auth.schema.js";
 import type ApiClient from "./ApiClient.js";
 
-export const PATHS = {
-  LOGIN: "login",
-  SIGNUP: "signup",
-  FEED: "/",
-};
-
 export default (api: ApiClient) => ({
-  login: (body: { email?: string; password?: string }) => {
-    return api.post(PATHS.LOGIN, body);
+  login: (body: Partial<LoginBody>) => {
+    return api.post(AuthSchema.login.path, body);
   },
-  signUp: (body: {
-    email?: string;
-    password?: string;
-    repeatPassword?: string;
-  }) => {
-    return api.post(PATHS.SIGNUP, body);
+  signUp: (body: Partial<SignupBody>) => {
+    return api.post(AuthSchema.signup.path, body);
   },
 });

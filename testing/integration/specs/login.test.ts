@@ -1,40 +1,49 @@
 import { test, describe } from "testing/integration/fixtures/index.js";
-import Login from "testing/api/routes/Login.js";
-import { PATHS } from "testing/api/routes.js";
+import routes from "testing/api/routes.js";
+import User from "backend/entities/User.js";
+import { expect } from "bun:test";
+import HTTP_CODES from "constants/HTTP_CODES.js";
 
 describe("Login", () => {
-  test.skip("Successful login should redirect to `/`", async ({
-    apiClient,
-  }) => {
-    // Insert a user into DB first
-    const login = await new Login(apiClient).login({
+  test("Successful login should redirect to `/`", async ({ apiClient, db }) => {
+    const credentials = {
       email: "test@test.com",
       password: "123123123",
-    });
-    login.expectStatus(200).hasPath(PATHS.FEED);
-  });
-  test("To be removed", async ({ apiClient }) => {
-    const res = await apiClient.get("/");
-    console.log(res);
+    };
+    await new User(db).create(credentials);
+    // Insert a user into DB first
+    await routes(apiClient)
+      .login(credentials)
+      .then((res) => {
+        expect(res.status).toBe(HTTP_CODES.REDIRECT);
+      });
   });
   test("Should fail if user doesn't exist", async ({ apiClient }) => {
-    const login = await new Login(apiClient).login({
-      email: "test@test.com",
-      password: "123123123",
-    });
-    login.expectStatus(500);
+    await routes(apiClient)
+      .login({
+        email: "test@test.com",
+        password: "123123123",
+      })
+      .then((res) => {
+        expect(res.status).toBe(HTTP_CODES.BAD_REQUEST);
+      });
   });
   test("Fail without email", async ({ apiClient }) => {
-    const login = await new Login(apiClient).login({
-      password: "123123123",
-    });
-    login.expectStatus(500);
+    await routes(apiClient)
+      .login({
+        password: "123123123",
+      })
+      .then((res) => {
+        expect(res.status).toBe(HTTP_CODES.BAD_REQUEST);
+      });
   });
   test("Fail without password", async ({ apiClient }) => {
-    const login = await new Login(apiClient).login({
-      email: "test@test.com",
-      password: "123123123",
-    });
-    login.expectStatus(500);
+    await routes(apiClient)
+      .login({
+        password: "123123123",
+      })
+      .then((res) => {
+        expect(res.status).toBe(HTTP_CODES.BAD_REQUEST);
+      });
   });
 });

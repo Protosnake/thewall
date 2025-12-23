@@ -24,7 +24,7 @@ export const USER_TABLE_SQL = `
 `;
 
 export default class User extends Entity<UserT> {
-  async create(input: Pick<UserT, "email" | "password">) {
+  async create(input: Pick<UserT, "email" | "password">): Promise<UserT> {
     const userId = crypto.randomUUID(); // No library needed in modern Node.js
     const now = new Date().toISOString();
     const encryptedPassword = hashPassword(input.password);
