@@ -9,13 +9,11 @@ export default class extends Entity<SessionT> {
     daysValid?: number;
   }): Promise<SessionT> {
     const { user, daysValid = 7 } = payload;
-    const sessionToken = crypto.randomUUID();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + daysValid);
     const [result] = await this.db
       .insert(sessions)
       .values({
-        id: sessionToken,
         userId: user.id,
         expiresAt: expiresAt,
       })

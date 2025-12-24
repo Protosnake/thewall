@@ -9,16 +9,13 @@ export default class extends Entity<UserT> {
    * Business logic like hashing stays here or in the Service layer.
    */
   async create(input: Pick<UserT, "email" | "password">): Promise<UserT> {
-    const userId = crypto.randomUUID();
     const encryptedPassword = hashPassword(input.password);
 
     const [result] = await this.db
       .insert(users)
       .values({
-        id: userId,
         email: input.email,
         password: encryptedPassword,
-        updatedBy: userId, // Initial creator is the user themselves
       })
       .returning();
 

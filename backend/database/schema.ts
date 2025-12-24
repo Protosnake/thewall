@@ -2,7 +2,9 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
-  id: text("id").primaryKey(), // UUID
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   email: text("email").unique().notNull(),
   password: text("password").notNull(),
   createdAt: text("createdAt")
@@ -11,13 +13,14 @@ export const users = sqliteTable("users", {
   updatedAt: text("updatedAt")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
-  updatedBy: text("updatedBy").notNull(),
 });
 export type UserT = typeof users.$inferSelect;
 export type UserInsertT = typeof users.$inferInsert;
 
 export const sessions = sqliteTable("sessions", {
-  id: text("id").primaryKey(), // UUID / Token
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -30,7 +33,9 @@ export const sessions = sqliteTable("sessions", {
 export type SessionT = typeof sessions.$inferSelect;
 
 export const posts = sqliteTable("posts", {
-  id: integer("id").primaryKey({ autoIncrement: true }), // SQLite handles this now
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   content: text("content").notNull(),
   author: text("author")
     .notNull()

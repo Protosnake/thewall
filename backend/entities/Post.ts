@@ -71,7 +71,7 @@ export default class extends Entity<PostT> {
   async delete(id: string): Promise<boolean> {
     const result = await this.db
       .delete(posts)
-      .where(eq(posts.id, parseInt(id)))
+      .where(eq(posts.id, id))
       .returning({ id: posts.id });
 
     return result.length > 0;
