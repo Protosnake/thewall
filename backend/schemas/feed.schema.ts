@@ -1,5 +1,6 @@
 import z from "zod";
 
+export const MAX_CHAR_FOR_POST = 300;
 export const FeedSchema = {
   feed: {
     path: "/",
@@ -12,7 +13,10 @@ export const FeedSchema = {
         content: z
           .string()
           .min(1, "You cannot create an empty post")
-          .max(300, "You cannot create a post longer than 300 characters"),
+          .max(
+            MAX_CHAR_FOR_POST,
+            "You cannot create a post longer than 300 characters"
+          ),
       }),
     },
   },

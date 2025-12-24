@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { posts, type PostInsertT, type PostT } from "database/schema.js";
 
 import Entity from "./Entity.js";
@@ -42,6 +42,7 @@ export default class extends Entity<PostT> {
       .select()
       .from(posts)
       .where(and(...conditions))
+      .orderBy(desc(posts.updatedAt))
       .limit(limit)
       .offset(offset)
       .all();

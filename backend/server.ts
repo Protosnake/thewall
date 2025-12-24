@@ -44,10 +44,7 @@ export const createServer = (testDb?: DatabaseClient) => {
   app.route("/", feedHandlers);
   app.notFound((c) => {
     // TODO: add generic NOT_FOUND page
-    return c.html(
-      html`<h1>HOOPLA, SOMETHING WENT WRONG</h1>`,
-      HTTP_CODES.NOT_FOUND
-    );
+    return c.html(html`<h1>HOOPLA, 404</h1>`, HTTP_CODES.NOT_FOUND);
   });
   // Mount Handlers (Auth handles /login, /signup, /logout)
 
