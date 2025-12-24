@@ -31,7 +31,7 @@ export default class extends Entity<PostT> {
     offset?: number;
   }) {
     // Case 2: Fetch multiple sessions with filters/pagination
-    const { filter, limit = 50, offset = 0 } = payload;
+    const { filter, limit = 200, offset = 0 } = payload;
 
     // Dynamically build the WHERE clause based on the filter object
     const conditions = Object.entries(filter).map(([key, value]) =>

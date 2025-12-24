@@ -14,6 +14,7 @@ export default ({ title, children }: LayoutProps) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="/styles/index.css" />
         <title>{title}</title>
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
       </head>
       <body>
         <nav>

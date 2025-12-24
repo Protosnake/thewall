@@ -2,21 +2,23 @@ import type { PostT } from "backend/database/schema.js";
 import { MAX_CHAR_FOR_POST } from "backend/schemas/feed.schema.js";
 import Layout from "frontend/pages/Layout.js";
 
-export default (props: { error?: string; posts?: PostT[] }) => {
-  const { posts, error } = props;
+export default () => {
   return (
     <Layout title="Feed">
       <form
-        action="/post"
-        method="post"
+        id="post-form"
+        hx-post="/post"
+        hx-target=".posts-list"
+        hx-swap="afterbegin"
+        /* Reset form and counter only if request was successful */
         style={{
           marginBottom: "2rem",
-          maxWidth: "100%", // Fixed: use camelCase for style objects in JSX
+          maxWidth: "100%",
         }}
-        noValidate // Fixed: use camelCase for JSX attributes
+        noValidate
       >
         <textarea
-          id="post-content" // ADDED: Match the script's ID
+          id="post-content"
           name="content"
           placeholder="What's on your mind?"
           maxLength={MAX_CHAR_FOR_POST}
@@ -25,11 +27,10 @@ export default (props: { error?: string; posts?: PostT[] }) => {
             minHeight: "120px",
             padding: "12px",
             resize: "vertical",
-            boxSizing: "border-box", // Fixed: camelCase
+            boxSizing: "border-box",
           }}
         />
 
-        {/* ADDED: Container for the character count */}
         <div
           style={{
             textAlign: "right",
@@ -41,62 +42,17 @@ export default (props: { error?: string; posts?: PostT[] }) => {
           <span id="char-count">0</span>/{MAX_CHAR_FOR_POST}
         </div>
 
-        <button type="submit" disabled>
-          Post!
-        </button>
-        {error && <div className="error-msg">{error}</div>}
+        <button type="submit">Post!</button>
+
+        <div id="form-error"></div>
       </form>
 
-      <div className="posts-list">
-        {posts && posts.length > 0 ? (
-          posts.map((post) => (
-            <div
-              key={post.id}
-              style={{
-                padding: "1rem",
-                borderBottom: "1px solid #ccc",
-                width: "100%",
-                margin: "0 auto",
-                boxSizing: "border-box",
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: "1rem",
-              }}
-            >
-              {/* Content stays at the top/left by default */}
-              <div
-                style={{
-                  wordBreak: "break-word",
-                  flex: "1",
-                  fontWeight: "500",
-                }}
-              >
-                {post.content}
-              </div>
-
-              {/* Meta wrapper pushed to the right */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-end", // This pushes children to the right
-                  fontSize: "0.85rem",
-                  color: "#666",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
-              >
-                <div>Posted by: {post.author}</div>
-                <div>at {post.updatedAt}</div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p>No posts yet.</p>
-        )}
-      </div>
+      <div
+        className="posts-list"
+        hx-get="/post"
+        hx-trigger="load, every 5s"
+        hx-swap="innerHTML"
+      ></div>
 
       <script
         dangerouslySetInnerHTML={{
@@ -105,28 +61,53 @@ export default (props: { error?: string; posts?: PostT[] }) => {
             const countSpan = document.getElementById('char-count');
             const submitBtn = document.querySelector('button[type="submit"]');
             
-            if (textarea && countSpan && submitBtn) {
-              // Run once on load to set initial state (e.g., if text remained after refresh)
-              const update = () => {
+            // Re-runnable function for logic
+            const updateCount = () => {
+                if (!textarea || !countSpan) return;
                 const length = textarea.value.length;
                 countSpan.textContent = length;
                 
-                submitBtn.disabled = length > ${MAX_CHAR_FOR_POST};
-                submitBtn.style.opacity = (length === 0 || length > ${MAX_CHAR_FOR_POST}) ? '0.5' : '1';
+                // Disable logic
+                const isInvalid = length === 0 || length > ${MAX_CHAR_FOR_POST};
+                if(submitBtn) {
+                    submitBtn.disabled = isInvalid;
+                    submitBtn.style.opacity = isInvalid ? '0.5' : '1';
+                }
                 
+                // Color logic
                 if (length >= ${MAX_CHAR_FOR_POST}) {
                   countSpan.style.color = 'red';
                   countSpan.style.fontWeight = 'bold';
                 } else if (length >= ${MAX_CHAR_FOR_POST - 20}) {
                   countSpan.style.color = 'orange';
                 } else {
-                  countSpan.style.color = 'inherit';
+                  countSpan.style.color = '#666'; // Reset to gray
                   countSpan.style.fontWeight = 'normal';
                 }
-              };
+            };
 
-              textarea.addEventListener('input', update);
-              update(); // Initialize
+            if (textarea) {
+              textarea.addEventListener('input', updateCount);
+              // Run once on load
+              updateCount();
+              
+              // NEW: Listen for HTMX events to re-run validation after form reset
+              document.body.addEventListener('htmx:afterRequest', (event) => {
+                // 1. Only act if the request came from our post form
+                if (event.detail.elt.id === 'post-form') {
+                  
+                  // 2. Only reset if the server returned a success (2xx) code
+                  if (event.detail.successful) {
+                    const form = event.detail.elt;
+                    form.reset();
+                    
+                    // 3. Re-run your existing update function to reset button & colors
+                    if (typeof updateCount === 'function') {
+                      updateCount(); 
+                    }
+                  }
+                }
+              });
             }
           `,
         }}

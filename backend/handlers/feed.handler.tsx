@@ -6,52 +6,70 @@ import { FeedSchema } from "backend/schemas/feed.schema.js";
 import authMiddleware from "backend/middleware/authMiddleware.js";
 import { zValidator } from "@hono/zod-validator";
 import Post from "backend/entities/Post.js";
+import PostComponent from "frontend/components/Post.js";
 import Session from "backend/entities/Session.js";
-import { AuthSchema } from "backend/schemas/auth.schema.js";
 import HTTP_CODES from "constants/HTTP_CODES.js";
 
 const feed = new Hono<{ Variables: { db: DatabaseClient } }>();
 
+// GET remains the same (renders the full page on load)
 feed.get(FeedSchema.feed.path, authMiddleware, async (c) => {
+  return c.html(<Feed />);
+});
+feed.get(FeedSchema.post.path, authMiddleware, async (c) => {
   const db = c.get("db");
   const posts = await new Post(db).search({ filter: {} });
-  return c.html(<Feed posts={posts} />);
+
+  if (posts.length === 0) {
+    return c.html(
+      <div
+        style={{
+          textAlign: "center",
+          padding: "3rem",
+          color: "#999",
+          fontStyle: "italic",
+        }}
+      >
+        The wall is quiet... be the first to post!
+      </div>
+    );
+  }
+
+  return c.html(<>{posts.map((post) => PostComponent(post))}</>);
 });
+
 feed.post(
   FeedSchema.post.path,
   authMiddleware,
-  // We keep the validator but remove the hook/callback to handle it manually
   zValidator("form", FeedSchema.post.POST.body),
   async (c) => {
-    const sessionId = getCookie(c, "session");
-    if (!sessionId) return c.redirect("/login");
-
     const db = c.get("db");
     const postService = new Post(db);
 
-    // 1. Manually check the result to keep the user on the Feed page
     const body = await c.req.parseBody();
     const result = FeedSchema.post.POST.body.safeParse(body);
 
-    if (!result.success) {
-      // Fetch posts so they don't disappear when an error shows
-      const posts = await postService.search({ filter: {} });
-      const errorMessage = result.error.issues[0].message;
+    const sessionId = getCookie(c, "session");
+
+    if (!result.success || typeof sessionId !== "string") {
       return c.html(
-        <Feed error={errorMessage} posts={posts} />,
-        HTTP_CODES.BAD_REQUEST
+        <div id="form-error" className="error-msg" hx-swap-oob="true">
+          {result?.error?.issues[0].message || `Unexpected error encountered`}
+        </div>,
+        HTTP_CODES.OK
       );
     }
 
     const { content } = result.data;
-
     const sessionRecord = await new Session(db).find(sessionId);
-    await postService.create({
+
+    // Create the post
+    const post = await postService.create({
       content,
       author: sessionRecord.userId,
     });
 
-    return c.redirect(FeedSchema.feed.path);
+    return c.html(PostComponent(post));
   }
 );
 
