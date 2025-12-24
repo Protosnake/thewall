@@ -21,12 +21,5 @@
     }
   },
   "exclude": ["node_modules"],
-  "include": [
-    "**/*.ts",
-    "frontend/pages/Layout.tsx",
-    "frontend/pages/SignUp.tsx",
-    "frontend/pages/Login.tsx",
-    "frontend/pages/Feed.page.tsx",
-    "backend/handlers/auth.handler.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

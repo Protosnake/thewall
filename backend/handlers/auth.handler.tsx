@@ -15,7 +15,7 @@ const auth = new Hono<{ Variables: { db: DatabaseClient } }>();
 
 // GET /login
 auth.get(AuthSchema.login.path, (c) => {
-  if (getCookie(c, "session")) return c.redirect("/feed");
+  if (getCookie(c, "session")) return c.redirect("/");
   return c.html(<Login />);
 });
 
@@ -44,7 +44,8 @@ auth.post(
         maxAge: 3600,
         expires: session.expiresAt,
       });
-      return c.redirect("/feed");
+      const referer = c.req.header("Referer");
+      return c.redirect(referer || "/");
     } catch (error: any) {
       return c.html(
         <Login email={form.email} error={error.message} />,
@@ -55,7 +56,10 @@ auth.post(
 );
 
 // GET /signup
-auth.get(AuthSchema.signup.path, (c) => c.html(<SignUp />));
+auth.get(AuthSchema.signup.path, (c) => {
+  if (getCookie(c, "session")) return c.redirect("/");
+  return c.html(<SignUp />);
+});
 
 // POST /signup
 auth.post(
@@ -85,7 +89,8 @@ auth.post(
         expires: session.expiresAt,
         maxAge: 3600,
       });
-      return c.redirect("/feed");
+      const referer = c.req.header("Referer");
+      return c.redirect(referer || "/");
     } catch (error: any) {
       return c.html(
         <SignUp email={form.email} error={error.message} />,

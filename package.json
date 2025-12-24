@@ -2,7 +2,7 @@
   "name": "my-app",
   "type": "module",
   "scripts": {
-    "dev": "bun run backend/server.ts"
+    "dev": "bun --watch backend/server.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",

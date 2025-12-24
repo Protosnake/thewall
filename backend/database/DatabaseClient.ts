@@ -20,14 +20,17 @@ export default class DatabaseClient {
    */
   async initialise() {
     try {
-      // This will automatically create the tables if they don't exist
-      migrate(this.db, { migrationsFolder: "./drizzle" });
-      console.log("✅ Database tables synced via migrations.");
-    } catch (error) {
-      console.error(
-        "❌ Migration failed. Did you run 'bunx drizzle-kit generate'?",
-        error
-      );
+      // Force a sync check
+      await migrate(this.db, { migrationsFolder: "./drizzle" });
+      console.log("✅ Database synced.");
+    } catch (error: any) {
+      if (error.message.includes("already exists")) {
+        console.warn(
+          "⚠️ Tables already exist, skipping initial migration run."
+        );
+      } else {
+        throw error;
+      }
     }
   }
 

@@ -1,9 +1,12 @@
-import { Hono, type Context, type Next } from "hono";
+import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { serveStatic } from "hono/bun";
 import DatabaseClient from "./database/DatabaseClient.js";
-import feedPage from "../frontend/pages/Feed.page.js";
 import authHandlers from "./handlers/auth.handler.js";
+import feedHandlers from "./handlers/feed.handler.js";
+import { html } from "hono/html";
+import authMiddleware from "./middleware/authMiddleware.js";
+import HTTP_CODES from "constants/HTTP_CODES.js";
 
 /**
  * Server Factory
@@ -28,14 +31,6 @@ export const createServer = (testDb?: DatabaseClient) => {
     await next();
   });
 
-  const authMiddleware = async (c: Context, next: Next) => {
-    const session = getCookie(c, "session");
-    if (!session) {
-      return c.redirect("/login");
-    }
-    await next();
-  };
-
   // Static files
   app.use(
     "/styles/*",
@@ -45,18 +40,25 @@ export const createServer = (testDb?: DatabaseClient) => {
   );
 
   // --- Routes ---
-
-  // Mount Handlers (Auth handles /login, /signup, /logout)
   app.route("/", authHandlers);
-
-  app.get("/", (c) => {
-    const session = getCookie(c, "session");
-    if (!session) return c.redirect("/login");
-    return c.redirect("/feed");
+  app.route("/", feedHandlers);
+  app.notFound((c) => {
+    // TODO: add generic NOT_FOUND page
+    return c.html(
+      html`<h1>HOOPLA, SOMETHING WENT WRONG</h1>`,
+      HTTP_CODES.NOT_FOUND
+    );
   });
+  // Mount Handlers (Auth handles /login, /signup, /logout)
 
-  app.get("/feed", authMiddleware, (c) => {
-    return c.html(feedPage());
+  app.get("/messages", authMiddleware, (c) => {
+    return c.redirect("/");
+  });
+  app.get("/profile", authMiddleware, (c) => {
+    return c.redirect("/");
+  });
+  app.get("/settings", authMiddleware, (c) => {
+    return c.redirect("/");
   });
 
   return app;

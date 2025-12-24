@@ -18,7 +18,6 @@ export default ({ title, children }: LayoutProps) => {
       <body>
         <nav>
           <a href="/">Home</a>
-          <a href="/feed">Feed</a>
           <a class="right" href="/logout">
             Logout
           </a>
@@ -26,10 +25,9 @@ export default ({ title, children }: LayoutProps) => {
         <div class="container">
           <aside class="sidebar">
             <nav>
-              <a href="/dashboard">Dashboard</a>
+              <a href="/messages">Messages</a>
               <a href="/profile">Profile</a>
               <a href="/settings">Settings</a>
-              <a href="/messages">Messages</a>
             </nav>
           </aside>
           <main>{children}</main>
