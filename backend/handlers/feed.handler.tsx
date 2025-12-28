@@ -7,6 +7,7 @@ import authMiddleware from "backend/middleware/authMiddleware.js";
 import { zValidator } from "@hono/zod-validator";
 import Post from "backend/entities/Post.js";
 import PostComponent from "frontend/components/Post.js";
+import ErrorComponent from "frontend/components/Error.js";
 import Session from "backend/entities/Session.js";
 import HTTP_CODES from "constants/HTTP_CODES.js";
 
@@ -53,9 +54,11 @@ feed.post(
 
     if (!result.success || typeof sessionId !== "string") {
       return c.html(
-        <div id="form-error" className="error-msg" hx-swap-oob="true">
-          {result?.error?.issues[0].message || `Unexpected error encountered`}
-        </div>,
+        <ErrorComponent
+          error={
+            result?.error?.issues[0].message || `Unexpected error encountered`
+          }
+        ></ErrorComponent>,
         HTTP_CODES.OK
       );
     }

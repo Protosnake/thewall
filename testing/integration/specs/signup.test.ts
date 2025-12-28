@@ -3,6 +3,7 @@ import routes from "testing/api/routes.js";
 import { expect } from "bun:test";
 import HTTP_CODES from "constants/HTTP_CODES.js";
 import User from "backend/entities/User.js";
+import { isHtmxError } from "../asserts.js";
 
 describe("Sign up", () => {
   test("Should be successfull", async ({ apiClient }) => {
@@ -28,7 +29,7 @@ describe("Sign up", () => {
         repeatPassword: "123123123",
       })
       .then((res) => {
-        expect(res.status).toBe(HTTP_CODES.BAD_REQUEST);
+        isHtmxError(res);
       });
   });
   test("Fail without email", async ({ apiClient }) => {
@@ -37,7 +38,7 @@ describe("Sign up", () => {
         password: "123123123",
       })
       .then((res) => {
-        expect(res.status).toBe(HTTP_CODES.BAD_REQUEST);
+        isHtmxError(res);
       });
   });
   test("Fail without second password", async ({ apiClient }) => {
@@ -47,7 +48,7 @@ describe("Sign up", () => {
         password: "123123123",
       })
       .then((res) => {
-        expect(res.status).toBe(HTTP_CODES.BAD_REQUEST);
+        isHtmxError(res);
       });
   });
 });

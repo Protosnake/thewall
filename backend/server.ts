@@ -38,6 +38,12 @@ export const createServer = (testDb?: DatabaseClient) => {
       root: "./frontend",
     })
   );
+  app.use(
+    "/svg-loaders/*",
+    serveStatic({
+      root: "./frontend",
+    })
+  );
 
   // --- Routes ---
   app.route("/", authHandlers);

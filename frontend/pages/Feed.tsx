@@ -1,4 +1,3 @@
-import type { PostT } from "backend/database/schema.js";
 import { MAX_CHAR_FOR_POST } from "backend/schemas/feed.schema.js";
 import Layout from "frontend/pages/Layout.js";
 
@@ -91,7 +90,6 @@ export default () => {
               // Run once on load
               updateCount();
               
-              // NEW: Listen for HTMX events to re-run validation after form reset
               document.body.addEventListener('htmx:afterRequest', (event) => {
                 // 1. Only act if the request came from our post form
                 if (event.detail.elt.id === 'post-form') {

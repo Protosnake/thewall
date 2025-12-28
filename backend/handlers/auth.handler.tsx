@@ -6,10 +6,11 @@ import AuthService from "backend/services/auth.service.js";
 
 // Components
 import Login from "frontend/pages/Login.js";
+import ErrorComponent from "frontend/components/Error.js";
 import SignUp from "frontend/pages/SignUp.js";
 import type DatabaseClient from "backend/database/DatabaseClient.js";
-import HTTP_CODES from "constants/HTTP_CODES.js";
 import Session from "backend/entities/Session.js";
+import { htmxError } from "backend/lib/htmx.js";
 
 const auth = new Hono<{ Variables: { db: DatabaseClient } }>();
 
@@ -24,10 +25,7 @@ auth.post(
   AuthSchema.login.path,
   zValidator("form", AuthSchema.login.POST.body, (result, c) => {
     if (!result.success) {
-      return c.html(
-        <Login email={result.data?.email} error="Invalid email or password" />,
-        HTTP_CODES.BAD_REQUEST
-      );
+      return htmxError(c, <ErrorComponent error="Invalid email or password" />);
     }
   }),
   async (c) => {
@@ -44,13 +42,14 @@ auth.post(
         maxAge: 3600,
         expires: session.expiresAt,
       });
+      if (c.req.header("HX-Request")) {
+        c.header("HX-Redirect", "/");
+        return c.text("");
+      }
       const referer = c.req.header("Referer");
       return c.redirect(referer || "/");
-    } catch (error: any) {
-      return c.html(
-        <Login email={form.email} error={error.message} />,
-        HTTP_CODES.BAD_REQUEST
-      );
+    } catch {
+      return htmxError(c, <ErrorComponent error="Invalid email or password" />);
     }
   }
 );
@@ -66,12 +65,9 @@ auth.post(
   AuthSchema.signup.path,
   zValidator("form", AuthSchema.signup.POST.body, (result, c) => {
     if (!result.success) {
-      return c.html(
-        <SignUp
-          email={result.data?.email}
-          error={result.error.issues[0].message}
-        />,
-        HTTP_CODES.BAD_REQUEST
+      return htmxError(
+        c,
+        <ErrorComponent error={result.error.issues[0].message} />
       );
     }
   }),
@@ -92,10 +88,7 @@ auth.post(
       const referer = c.req.header("Referer");
       return c.redirect(referer || "/");
     } catch (error: any) {
-      return c.html(
-        <SignUp email={form.email} error={error.message} />,
-        HTTP_CODES.BAD_REQUEST
-      );
+      return htmxError(c, <ErrorComponent error={error.message} />);
     }
   }
 );
