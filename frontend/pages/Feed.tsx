@@ -1,4 +1,5 @@
 import { MAX_CHAR_FOR_POST } from "backend/schemas/feed.schema.js";
+import LoadingIndicator from "frontend/components/LoadingIndicator.js";
 import Layout from "frontend/pages/Layout.js";
 
 export default () => {
@@ -41,7 +42,10 @@ export default () => {
           <span id="char-count">0</span>/{MAX_CHAR_FOR_POST}
         </div>
 
-        <button type="submit">Post!</button>
+        <button type="submit">
+          Post!
+          <LoadingIndicator />
+        </button>
 
         <div id="form-error"></div>
       </form>

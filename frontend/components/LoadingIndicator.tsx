@@ -3,9 +3,9 @@ export default () => (
     style={{
       width: "1em",
       height: "1em",
-      marginLeft: "1rm",
+      marginLeft: "1rem",
     }}
-    class="htmx-indicator"
+    className="htmx-indicator"
     src="svg-loaders/tail-spin.svg"
     alt="Loading..."
   ></img>
