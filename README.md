@@ -1,4 +1,4 @@
-My take on using HTML to create a responsive, dynamic web applications.
+My take on using HTMX to create a responsive, dynamic web applications.
 WIP
 
 # Installation
