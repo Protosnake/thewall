@@ -1,8 +1,14 @@
-```
-npm install
-npm run dev
-```
+My take on using HTML to create a responsive, dynamic web applications.
+WIP
+
+# Installation
 
 ```
-open http://localhost:3000
+bun install
+```
+
+# Running development server
+
+```
+bun dev
 ```
