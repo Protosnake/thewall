@@ -10,6 +10,8 @@ import PostComponent from "frontend/components/Post.js";
 import ErrorComponent from "frontend/components/Error.js";
 import Session from "backend/entities/Session.js";
 import HTTP_CODES from "constants/HTTP_CODES.js";
+import LikeService from "backend/services/likes.service.js";
+import LikeButton from "frontend/components/LikeButton.js";
 
 const feed = new Hono<{ Variables: { db: DatabaseClient } }>();
 
@@ -19,7 +21,17 @@ feed.get(FeedSchema.feed.path, authMiddleware, async (c) => {
 });
 feed.get(FeedSchema.post.path, authMiddleware, async (c) => {
   const db = c.get("db");
-  const posts = await new Post(db).search({ filter: {} });
+  const sessionId = getCookie(c, "session");
+
+  if (typeof sessionId !== "string") {
+    return c.html(
+      <ErrorComponent error={`Unexpected error encountered`}></ErrorComponent>,
+      HTTP_CODES.OK
+    );
+  }
+
+  const sessionRecord = await new Session(db).find(sessionId);
+  const posts = await new Post(db).withLikes({ userId: sessionRecord.userId });
 
   if (posts.length === 0) {
     return c.html(
@@ -72,8 +84,48 @@ feed.post(
       author: sessionRecord.userId,
     });
 
-    return c.html(PostComponent(post));
+    return c.html(PostComponent({ ...post, likeCount: 0, isLiked: false }));
   }
 );
+
+feed.post("/posts/:id/like", async (c) => {
+  const db = c.get("db");
+  const postId = c.req.param("id");
+  const sessionId = getCookie(c, "session");
+
+  if (typeof sessionId !== "string") {
+    return c.html(
+      <ErrorComponent error={`Unexpected error encountered`}></ErrorComponent>,
+      HTTP_CODES.OK
+    );
+  }
+
+  const sessionRecord = await new Session(db).find(sessionId);
+
+  // 1. Perform the toggle using your service
+  // This returns { count: number, isLiked: boolean }
+  const stats = await new LikeService(db).toggle({
+    userId: sessionRecord.userId,
+    postId,
+  });
+
+  // 2. Fetch the post data to re-render the component
+  // We use find() here because we just need this specific post
+  const post = await new Post(db).find(postId);
+
+  if (!post) return c.notFound();
+
+  // 3. Return the component.
+  // HTMX replaces the old post with this updated one.
+  return c.html(
+    <LikeButton
+      post={{
+        ...post,
+        likeCount: stats.count,
+        isLiked: stats.isLiked,
+      }}
+    />
+  );
+});
 
 export default feed;

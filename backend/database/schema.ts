@@ -1,4 +1,10 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  primaryKey,
+  index,
+} from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
@@ -49,3 +55,29 @@ export const posts = sqliteTable("posts", {
 });
 export type PostT = typeof posts.$inferSelect;
 export type PostInsertT = typeof posts.$inferInsert;
+export type PostWithLikesT = PostT & {
+  likeCount: number;
+  isLiked: boolean;
+};
+
+export const likes = sqliteTable(
+  "likes",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(
+      sql`CURRENT_TIMESTAMP`
+    ),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.postId] }),
+    index("post_id_idx").on(t.postId),
+  ]
+);
+
+export type LikeT = typeof likes.$inferSelect;
+export type LikeInsertT = typeof likes.$inferInsert;

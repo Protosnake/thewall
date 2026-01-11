@@ -55,6 +55,12 @@ export default () => {
         hx-get="/post"
         hx-trigger="load, every 5s"
         hx-swap="innerHTML"
+        style={{
+          width: "100%", // Ensure the container is full width
+          display: "flex", // Use flexbox to control children
+          flexDirection: "column",
+          alignItems: "stretch", // Forces posts to be as wide as the list
+        }}
       ></div>
 
       <script

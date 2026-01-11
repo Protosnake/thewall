@@ -11,8 +11,9 @@ import SignUp from "frontend/pages/SignUp.js";
 import type DatabaseClient from "backend/database/DatabaseClient.js";
 import Session from "backend/entities/Session.js";
 import { htmxError } from "backend/lib/htmx.js";
+import type { Logger } from "pino";
 
-const auth = new Hono<{ Variables: { db: DatabaseClient } }>();
+const auth = new Hono<{ Variables: { db: DatabaseClient; log: Logger } }>();
 
 // GET /login
 auth.get(AuthSchema.login.path, (c) => {

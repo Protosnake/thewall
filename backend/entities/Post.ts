@@ -1,5 +1,12 @@
-import { eq, and, desc } from "drizzle-orm";
-import { posts, type PostInsertT, type PostT } from "database/schema.js";
+import { eq, and, desc, sql } from "drizzle-orm";
+import {
+  likes,
+  posts,
+  users,
+  type PostInsertT,
+  type PostT,
+  type PostWithLikesT,
+} from "database/schema.js";
 
 import Entity from "./Entity.js";
 
@@ -76,5 +83,30 @@ export default class extends Entity<PostT> {
       .returning({ id: posts.id });
 
     return result.length > 0;
+  }
+
+  async withLikes(
+    input: { userId?: string; limit?: number } = { limit: 50 }
+  ): Promise<PostWithLikesT[]> {
+    return this.db
+      .select({
+        id: posts.id,
+        content: posts.content,
+        createdAt: posts.createdAt,
+        author: users.id,
+        updatedAt: posts.updatedAt,
+        // The Entity handles the complex SQL so the handler doesn't have to
+        likeCount: sql<number>`(SELECT count(*) FROM ${likes} WHERE ${likes.postId} = ${posts.id})`,
+        isLiked: input?.userId
+          ? sql<number>`EXISTS(SELECT 1 FROM ${likes} WHERE ${likes.postId} = ${posts.id} AND ${likes.userId} = ${input?.userId})`.mapWith(
+              Boolean
+            )
+          : sql<number>`0`.mapWith(Boolean),
+      })
+      .from(posts)
+      .innerJoin(users, eq(posts.author, users.id))
+      .orderBy(desc(posts.createdAt))
+      .limit(input.limit)
+      .all();
   }
 }
