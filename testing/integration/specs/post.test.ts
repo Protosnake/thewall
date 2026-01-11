@@ -63,7 +63,7 @@ describe("Posts", () => {
 
     const post = await new Post(db).create({
       content: "KEK",
-      author: session.userId,
+      userId: session.userId,
     });
 
     await routes(apiClient)

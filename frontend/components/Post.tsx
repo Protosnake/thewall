@@ -46,7 +46,7 @@ export default (post: PostWithLikesT) => {
           flexShrink: 0,
         }}
       >
-        <div>Posted by: {post.author.slice(0, 8)}</div>
+        <div>Posted by: {post.userId.slice(0, 8)}</div>
         {/* We'll wrap this in new Date() since we haven't run the migration yet */}
         <div>at {new Date(post.updatedAt).toLocaleTimeString()}</div>
       </div>

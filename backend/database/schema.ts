@@ -43,7 +43,7 @@ export const posts = sqliteTable("posts", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   content: text("content").notNull(),
-  author: text("author")
+  userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   createdAt: integer("createdAt", { mode: "timestamp" })

@@ -81,7 +81,7 @@ feed.post(
     // Create the post
     const post = await postService.create({
       content,
-      author: sessionRecord.userId,
+      userId: sessionRecord.userId,
     });
 
     return c.html(PostComponent({ ...post, likeCount: 0, isLiked: false }));

@@ -15,12 +15,12 @@ export default class extends Entity<PostT> {
    * Create a new user with hashed password.
    * Business logic like hashing stays here or in the Service layer.
    */
-  async create(input: Pick<PostT, "content" | "author">): Promise<PostT> {
+  async create(input: Pick<PostT, "content" | "userId">): Promise<PostT> {
     const [result] = await this.db
       .insert(posts)
       .values({
         content: input.content,
-        author: input.author,
+        userId: input.userId,
       })
       .returning();
 
@@ -97,7 +97,7 @@ export default class extends Entity<PostT> {
         id: posts.id,
         content: posts.content,
         createdAt: posts.createdAt,
-        author: users.id,
+        userId: users.id,
         updatedAt: posts.updatedAt,
         likeCount: sql<number>`(SELECT count(*) FROM ${likes} WHERE ${likes.postId} = ${posts.id})`,
         isLiked: userId
@@ -107,7 +107,7 @@ export default class extends Entity<PostT> {
           : sql<number>`0`.mapWith(Boolean),
       })
       .from(posts)
-      .innerJoin(users, eq(posts.author, users.id))
+      .innerJoin(users, eq(posts.userId, users.id))
       .orderBy(desc(posts.createdAt))
       .limit(limit);
 
