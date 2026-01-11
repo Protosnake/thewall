@@ -1,8 +1,6 @@
 import DatabaseClient from "backend/database/DatabaseClient.js";
 import { test as _test, describe as _describe } from "bun:test";
 import ApiClient from "testing/api/ApiClient.js";
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import path from "path";
 
 export const describe = _describe;
 

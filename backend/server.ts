@@ -9,6 +9,7 @@ import { html } from "hono/html";
 import authMiddleware from "./middleware/authMiddleware.js";
 import HTTP_CODES from "constants/HTTP_CODES.js";
 import type { Logger } from "pino";
+import assert from "assert";
 
 type Bindings = {
   db: DatabaseClient;
@@ -26,7 +27,8 @@ export const createServer = (testDb?: DatabaseClient) => {
 
   // 1. Determine which DB to use
   // If testDb is provided, use it. Otherwise, use the persistent file.
-  const activeDb = testDb || new DatabaseClient("thewall.db");
+  assert(process.env.DATABASE_NAME, `Database name is required`);
+  const activeDb = testDb || new DatabaseClient(process.env.DATABASE_NAME);
 
   // 2. Initialize the Database
   // This ensures that if it's a fresh in-memory DB, the tables are created immediately
@@ -124,5 +126,5 @@ const app = createServer();
 // Export for both testing (the instance) and for the ApiClient
 export default {
   fetch: app.fetch,
-  port: 3000,
+  port: process.env.PORT || 3000,
 };
