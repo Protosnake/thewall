@@ -20,4 +20,15 @@ export const FeedSchema = {
       }),
     },
   },
+  like: {
+    path: "/post/:id/like",
+    POST: {
+      params: z.object({
+        id: z.string(),
+      }),
+    },
+  },
 } as const;
+
+export type PostBodyT = z.infer<typeof FeedSchema.post.POST.body>;
+export type LikeParamsT = z.infer<typeof FeedSchema.like.POST.params>;

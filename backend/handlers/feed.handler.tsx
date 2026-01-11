@@ -88,7 +88,7 @@ feed.post(
   }
 );
 
-feed.post("/posts/:id/like", async (c) => {
+feed.post(FeedSchema.like.path, async (c) => {
   const db = c.get("db");
   const postId = c.req.param("id");
   const sessionId = getCookie(c, "session");

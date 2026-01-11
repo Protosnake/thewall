@@ -53,7 +53,7 @@ export default () => {
       <div
         className="posts-list"
         hx-get="/post"
-        hx-trigger="load, every 5s"
+        hx-trigger="load"
         hx-swap="innerHTML"
         style={{
           width: "100%", // Ensure the container is full width

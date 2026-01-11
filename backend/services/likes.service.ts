@@ -29,7 +29,10 @@ export default class LikeService {
     return this.getStats(input);
   }
 
-  async getStats(input: { postId: string; userId?: string }) {
+  async getStats(input: {
+    postId: string;
+    userId?: string;
+  }): Promise<{ count: number; isLiked: boolean }> {
     const stats = await this.client.db
       .select({
         count: sql<number>`count(*)`,

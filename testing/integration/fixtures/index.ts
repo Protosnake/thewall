@@ -1,6 +1,8 @@
 import DatabaseClient from "backend/database/DatabaseClient.js";
 import { test as _test, describe as _describe } from "bun:test";
 import ApiClient from "testing/api/ApiClient.js";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import path from "path";
 
 export const describe = _describe;
 
@@ -9,14 +11,23 @@ type TestFixture = {
   apiClient: ApiClient;
 };
 
-// This helper ensures that the setup logic is wrapped consistently
-// for both active and skipped tests.
+/**
+ * This helper ensures that the setup logic is wrapped consistently
+ * for both active and skipped tests.
+ * * It initializes a fresh in-memory SQLite DB, runs migrations,
+ * and provides a clean ApiClient.
+ */
 const wrap = (fn: (fixture: TestFixture) => void | Promise<unknown>) => {
   return async () => {
     const db = new DatabaseClient(":memory:");
-    const apiClient = new ApiClient(db);
+
     try {
+      const apiClient = new ApiClient(db);
+
       await fn({ db, apiClient });
+    } catch (error) {
+      console.error("Test Setup Failed:", error);
+      throw error;
     } finally {
       db.close();
     }

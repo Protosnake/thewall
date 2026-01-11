@@ -85,20 +85,23 @@ export default class extends Entity<PostT> {
     return result.length > 0;
   }
 
-  async withLikes(
-    input: { userId?: string; limit?: number } = { limit: 50 }
-  ): Promise<PostWithLikesT[]> {
-    return this.db
+  async withLikes(input: {
+    userId?: string;
+    postId?: string;
+    limit?: number;
+  }): Promise<PostWithLikesT[]> {
+    const { userId, postId, limit = 50 } = input;
+
+    const query = this.db
       .select({
         id: posts.id,
         content: posts.content,
         createdAt: posts.createdAt,
         author: users.id,
         updatedAt: posts.updatedAt,
-        // The Entity handles the complex SQL so the handler doesn't have to
         likeCount: sql<number>`(SELECT count(*) FROM ${likes} WHERE ${likes.postId} = ${posts.id})`,
-        isLiked: input?.userId
-          ? sql<number>`EXISTS(SELECT 1 FROM ${likes} WHERE ${likes.postId} = ${posts.id} AND ${likes.userId} = ${input?.userId})`.mapWith(
+        isLiked: userId
+          ? sql<number>`EXISTS(SELECT 1 FROM ${likes} WHERE ${likes.postId} = ${posts.id} AND ${likes.userId} = ${userId})`.mapWith(
               Boolean
             )
           : sql<number>`0`.mapWith(Boolean),
@@ -106,7 +109,13 @@ export default class extends Entity<PostT> {
       .from(posts)
       .innerJoin(users, eq(posts.author, users.id))
       .orderBy(desc(posts.createdAt))
-      .limit(input.limit)
-      .all();
+      .limit(limit);
+
+    // Apply conditional filtering if postId is provided
+    if (postId) {
+      return query.where(eq(posts.id, postId)).all();
+    }
+
+    return query.all();
   }
 }
