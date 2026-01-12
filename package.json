@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch backend/server.ts",
+    "start": "bun backend/server.ts",
     "test": "LOG_LEVEL=silent bun test"
   },
   "dependencies": {
