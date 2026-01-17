@@ -1,7 +1,7 @@
 import DatabaseClient from "backend/database/DatabaseClient.js";
 import { test as _test } from "bun:test";
 import ApiClient from "testing/api/ApiClient.js";
-
+import assert from "assert";
 export { describe } from "bun:test";
 
 type TestFixture = {
@@ -17,7 +17,8 @@ type TestFixture = {
  */
 const wrap = (fn: (fixture: TestFixture) => void | Promise<unknown>) => {
   return async () => {
-    const db = new DatabaseClient(":memory:");
+    assert(process.env.DATABASE_NAME);
+    const db = new DatabaseClient(process.env.DATABASE_NAME);
 
     try {
       const apiClient = new ApiClient(db);
