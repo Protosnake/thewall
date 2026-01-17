@@ -1,8 +1,8 @@
 import DatabaseClient from "backend/database/DatabaseClient.js";
-import { test as _test, describe as _describe } from "bun:test";
+import { test as _test } from "bun:test";
 import ApiClient from "testing/api/ApiClient.js";
 
-export const describe = _describe;
+export { describe } from "bun:test";
 
 type TestFixture = {
   db: DatabaseClient;
