@@ -12,7 +12,7 @@ describe("Login", () => {
       password: "123123123",
     };
     await new User(db).create(credentials);
-    // Insert a user into DB first
+
     await routes(apiClient)
       .login(credentials)
       .then((res) => {
