@@ -17,7 +17,7 @@ type TestFixture = {
  */
 const wrap = (fn: (fixture: TestFixture) => void | Promise<unknown>) => {
   return async () => {
-    assert(process.env.DATABASE_NAME);
+    assert(process.env.DATABASE_NAME, "DATABASE_NAME env var is not set");
     const db = new DatabaseClient(process.env.DATABASE_NAME);
 
     try {
