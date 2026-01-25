@@ -31,3 +31,6 @@ lerna-debug.log*
 *.db
 *.db-journal
 *.db-wal
+
+# playwright
+playwright-report
